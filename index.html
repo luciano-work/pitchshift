@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WaveSurfer: seeking delay bug</title>
+  </head>
+  <body>
+    <div style="margin-bottom: 8px;">
+      <h1>Problem: </h1>
+      <span>When listening to both songs simultaneously after adjusting the timing, they will become out of sync.</span>
+      <h1>How to reproduce the issue:</h1>
+      <span>Click on the play button, adjust the timing of the instrumental music using the mouse cursor, then click on the pause button and observe the results.</span>
+    </div>
+
+    <div style="margin-bottom: 8px;">
+      <button id="play">Play</button>
+      <button id="pause">Pause</button>
+    </div>
+
+    <div>Instruments</div>
+    <div id="waveform"></div>
+    <div>Vocals</div>
+    <div id="vocalWaveform"></div>
+
+    <div id="results" style="margin-top: 8px;"></div>
+
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
