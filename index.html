@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WaveSurfer: seeking delay bug</title>
+    <title>WaveSurfer</title>
   </head>
   <body>
     <div style="margin-bottom: 8px;">
@@ -25,6 +25,17 @@
 
     <div id="results" style="margin-top: 8px;"></div>
 
-    <script type="module" src="main.js"></script>
+    <div style="margin-bottom: 8px;">
+      <button id="play2">Play</button>
+      <button id="pause2">Pause</button>
+    </div>
+    <div>
+      <audio id="playbackPlayer" controls />
+    </div>
+    <div>
+      <audio id="vocalPlayer" controls />
+    </div>
+
+    <script type="module" src="index.js"></script>
   </body>
 </html>

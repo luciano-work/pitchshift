@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "pizzicato": "^0.6.4",
     "wavesurfer.js": "^7.7.14"
   },
   "devDependencies": {

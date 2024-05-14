@@ -6,6 +6,35 @@ const playButton = document.getElementById('play');
 const pauseButton = document.getElementById('pause');
 const results = document.getElementById('results');
 
+const playButton2 = document.getElementById('play2');
+const pauseButton2 = document.getElementById('pause2');
+const vocalPlayer = document.getElementById('vocalPlayer');
+const playbackPlayer = document.getElementById('playbackPlayer');
+
+playbackPlayer.src = playback;
+playbackPlayer.load();
+vocalPlayer.src = vocals;
+vocalPlayer.load();
+
+playbackPlayer.onseeked = function () {
+  vocalPlayer.currentTime = playbackPlayer.currentTime;
+};
+
+vocalPlayer.onseeked = function () {
+  console.log('playbackPlayer seeked')
+};
+
+playButton2.addEventListener('click', function () {
+  playbackPlayer.play();
+  vocalPlayer.play();
+});
+
+pauseButton2.addEventListener('click', function () {
+  playbackPlayer.pause();
+  vocalPlayer.pause();
+});
+
+
 const playbackWave = wavesurfer.create({
   container: '#waveform',
   waveColor: '#86efac',
@@ -24,8 +53,8 @@ const vocalWave = wavesurfer.create({
 playbackWave.on('ready', function () {
 });
 
-playbackWave.on('seeking', function (time) {
- vocalWave.seekTo(time / playbackWave.getDuration())
+playbackWave.on('seeking', function () {
+ vocalWave.setTime(playbackWave.getCurrentTime())
 });
 
 // vocalWave.on('seeking', function (time) {
