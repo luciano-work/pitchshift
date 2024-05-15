@@ -4,8 +4,8 @@ import Sonorous from 'sonorous';
 const instruments = "music/instruments.mp3";
 const vocals = "music/vocals.mp3";
 
-const playbackPlayer = Sonorous.addSonor(instruments, {id: 'playback'});
-const vocalsPlayer = Sonorous.addSonor(vocals, {id: 'vocals'});
+let playbackPlayer = Sonorous.addSonor(instruments, {id: 'playback'});
+let vocalsPlayer = Sonorous.addSonor(vocals, {id: 'vocals'});
 
 const playButton = document.getElementById('play');
 const pauseButton = document.getElementById('pause');
@@ -20,6 +20,7 @@ const waveform = wavesurfer.create({
 // seek waveform to playback position
 waveform.on('click', function (value) {
   Sonorous.sonors.forEach(sonor => {
+    console.log(sonor.id);
     const duration = sonor.duration;
     sonor.seek(value * duration)
   })
@@ -34,22 +35,30 @@ pauseButton.addEventListener('click', () => {
 });
 
 function play() {
-  playbackPlayer.play();
-  vocalsPlayer.play();
+  Sonorous.sonors.forEach(sonor => { 
+    sonor.play();
+  });
 }
 
 function pause() {
-  playbackPlayer.pause();
-  vocalsPlayer.pause();
+  playbackPlayer.stop();
+  vocalsPlayer.stop();
+  Sonorous.removeSonor('playback');
+  Sonorous.removeSonor('vocals');
+  Sonorous.reload();
+  playbackPlayer = Sonorous.addSonor(instruments, {id: 'playback'});
+  // vocalsPlayer = Sonorous.addSonor(vocals, {id: 'vocals'});
+
+  Sonorous.sonors.forEach(sonor => {
+    console.log(sonor.id);
+  })
 }
 
-let progressSonor = Sonorous.get('playback');
 setInterval(()=>{
-  if (progressSonor.isPlaying && progressSonor.duration !== 0) {
-    let currentTime = progressSonor.playbackPosition;
-    let percentComplete = currentTime / progressSonor.duration;
+  if (playbackPlayer.isPlaying && playbackPlayer.duration !== 0) {
+    let currentTime = playbackPlayer.playbackPosition;
+    let percentComplete = currentTime / playbackPlayer.duration;
     waveform.seekTo(percentComplete);
-  }else{
-    waveform.seekTo(0);
   }
 }, 100);
+
