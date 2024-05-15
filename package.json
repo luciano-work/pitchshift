@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "pizzicato": "^0.6.4",
+    "sonorous": "^1.0.8",
     "wavesurfer.js": "^7.7.14"
   },
   "devDependencies": {

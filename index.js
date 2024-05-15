@@ -1,11 +1,11 @@
 import wavesurfer from'wavesurfer.js';
-import Pizzicator from 'pizzicato';
+import Sonorous from 'sonorous';
 
 const instruments = "music/instruments.mp3";
 const vocals = "music/vocals.mp3";
 
-const playbackPlayer = new Pizzicator.Sound(instruments);
-const vocalsPlayer = new Pizzicator.Sound(vocals);
+const playbackPlayer = Sonorous.addSonor(instruments, {id: 'playback'});
+const vocalsPlayer = Sonorous.addSonor(vocals, {id: 'vocals'});
 
 const playButton = document.getElementById('play');
 const pauseButton = document.getElementById('pause');
@@ -17,10 +17,12 @@ const waveform = wavesurfer.create({
   url: instruments,
 })
 
+// seek waveform to playback position
 waveform.on('click', function (value) {
-  const duration = playbackPlayer.getRawSourceNode().buffer.duration
-  const time = value * duration;
-  seekTo(time);
+  Sonorous.sonors.forEach(sonor => {
+    const duration = sonor.duration;
+    sonor.seek(value * duration)
+  })
 });
 
 playButton.addEventListener('click', () => {
@@ -37,13 +39,17 @@ function play() {
 }
 
 function pause() {
-  playbackPlayer.stop();
-  vocalsPlayer.stop();
+  playbackPlayer.pause();
+  vocalsPlayer.pause();
 }
 
-function seekTo(time) {
-  pause();
-  playbackPlayer.play(0,time);
-  vocalsPlayer.play(0,time);
-  console.log('seeking to', time);
-}
+let progressSonor = Sonorous.get('playback');
+setInterval(()=>{
+  if (progressSonor.isPlaying && progressSonor.duration !== 0) {
+    let currentTime = progressSonor.playbackPosition;
+    let percentComplete = currentTime / progressSonor.duration;
+    waveform.seekTo(percentComplete);
+  }else{
+    waveform.seekTo(0);
+  }
+}, 100);
