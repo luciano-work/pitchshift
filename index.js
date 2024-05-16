@@ -1,11 +1,14 @@
 import wavesurfer from'wavesurfer.js';
-import Sonorous from 'sonorous';
+import { Howl } from "howler";
 
 const instruments = "music/instruments.mp3";
 const vocals = "music/vocals.mp3";
 
-let playbackPlayer = Sonorous.addSonor(instruments, {id: 'playback'});
-let vocalsPlayer = Sonorous.addSonor(vocals, {id: 'vocals'});
+// let playbackPlayer = Sonorous.addSonor(instruments, {id: 'playback'});
+// let vocalsPlayer = Sonorous.addSonor(vocals, {id: 'vocals'});
+
+let playbackPlayer = new Howl({src:[instruments], onend: nextSong})
+let vocalsPlayer = new Howl({src:[vocals]})
 
 const playButton = document.getElementById('play');
 const pauseButton = document.getElementById('pause');
@@ -19,11 +22,10 @@ const waveform = wavesurfer.create({
 
 // seek waveform to playback position
 waveform.on('click', function (value) {
-  Sonorous.sonors.forEach(sonor => {
-    console.log(sonor.id);
-    const duration = sonor.duration;
-    sonor.seek(value * duration)
-  })
+  const duration = playbackPlayer.duration();
+  const seekTime = value * duration;
+  playbackPlayer.seek(seekTime);
+  vocalsPlayer.seek(seekTime);
 });
 
 playButton.addEventListener('click', () => {
@@ -35,30 +37,41 @@ pauseButton.addEventListener('click', () => {
 });
 
 function play() {
-  Sonorous.sonors.forEach(sonor => { 
-    sonor.play();
-  });
+  // Sonorous.sonors.forEach(sonor => { 
+  //   sonor.play();
+  // });
+  playbackPlayer.play();
+  vocalsPlayer.play();
 }
 
 function pause() {
-  playbackPlayer.stop();
-  vocalsPlayer.stop();
-  Sonorous.removeSonor('playback');
-  Sonorous.removeSonor('vocals');
-  Sonorous.reload();
-  playbackPlayer = Sonorous.addSonor(instruments, {id: 'playback'});
-  // vocalsPlayer = Sonorous.addSonor(vocals, {id: 'vocals'});
-
-  Sonorous.sonors.forEach(sonor => {
-    console.log(sonor.id);
-  })
+  playbackPlayer.pause();
+  vocalsPlayer.pause();
 }
 
 setInterval(()=>{
-  if (playbackPlayer.isPlaying && playbackPlayer.duration !== 0) {
-    let currentTime = playbackPlayer.playbackPosition;
-    let percentComplete = currentTime / playbackPlayer.duration;
+  if (playbackPlayer.playing() && playbackPlayer.duration() !== 0) {
+    let currentTime = Math.round(playbackPlayer.seek());
+    let percentComplete = currentTime / playbackPlayer.duration();
     waveform.seekTo(percentComplete);
   }
 }, 100);
 
+
+async function nextSong() {
+
+  console.log("Next song");
+
+  const instruments = "music/Earth, Wind & Fire - September - (Instrumental).mp3";
+  const vocals = "music/Earth, Wind & Fire - September - (Vocals).mp3";
+  playbackPlayer = null;
+  vocalsPlayer = null;
+  playbackPlayer = new Howl({src:[instruments], onend: nextSong})
+  vocalsPlayer = new Howl({src:[vocals]})
+  waveform.load(instruments);
+
+  //await 2 seconds promise
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  play();
+
+}
