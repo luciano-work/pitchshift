@@ -1,17 +1,19 @@
 import wavesurfer from'wavesurfer.js';
 import { Howl } from "howler";
+import * as Tone from "tone";
 
 const instruments = "music/instruments.mp3";
 const vocals = "music/vocals.mp3";
 
-// let playbackPlayer = Sonorous.addSonor(instruments, {id: 'playback'});
-// let vocalsPlayer = Sonorous.addSonor(vocals, {id: 'vocals'});
-
 let playbackPlayer = new Howl({src:[instruments], onend: nextSong})
 let vocalsPlayer = new Howl({src:[vocals]})
+let pitch = 0;
 
 const playButton = document.getElementById('play');
 const pauseButton = document.getElementById('pause');
+const pitchShiftPlus = document.getElementById('pitshiftPlus');
+const pitchShiftMinus = document.getElementById('pitshiftMinus');
+const PitchShiftResult = document.getElementById('pitchshift');
 
 const waveform = wavesurfer.create({
   container: '#waveform',
@@ -35,6 +37,32 @@ playButton.addEventListener('click', () => {
 pauseButton.addEventListener('click', () => {
   pause();
 });
+
+pitchShiftPlus.addEventListener('click', () => {
+  pitch += 0.5;
+  Tone.setContext(Howler.ctx);
+  const pShift = new Tone.PitchShift(pitch);
+  Howler.masterGain.disconnect();
+  Tone.connect(Howler.masterGain, pShift);
+  pShift.toDestination();
+  updatePitchShift()
+  console.log(pShift.context === Howler.ctx);
+});
+
+pitchShiftMinus.addEventListener('click', () => {
+  pitch -= 0.5;
+  Tone.setContext(Howler.ctx);
+  const pShift = new Tone.PitchShift(pitch);
+  Howler.masterGain.disconnect();
+  Tone.connect(Howler.masterGain, pShift);
+  pShift.toDestination();
+  updatePitchShift();
+});
+
+function updatePitchShift() {
+  PitchShiftResult.innerHTML = pitch;
+}
+
 
 function play() {
   // Sonorous.sonors.forEach(sonor => { 
