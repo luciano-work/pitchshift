@@ -5,9 +5,10 @@ import * as Tone from "tone";
 const instruments = "music/instruments.mp3";
 const vocals = "music/vocals.mp3";
 
-let playbackPlayer = new Howl({src:[instruments], onend: nextSong})
+let playbackPlayer = new Howl({src:[instruments], onload: onLoad})
 let vocalsPlayer = new Howl({src:[vocals]})
 let pitch = 0;
+let pitchShift = null;
 
 const playButton = document.getElementById('play');
 const pauseButton = document.getElementById('pause');
@@ -21,6 +22,15 @@ const waveform = wavesurfer.create({
   progressColor: '#22c55e',
   url: instruments,
 })
+
+function onLoad() {
+  Tone.setContext(Howler.ctx);
+  Howler.masterGain.disconnect();
+  pitchShift = new Tone.PitchShift({ pitch: 0, wet: 1}).toDestination();
+  // reverb = new Tone.Reverb({decay: 3,wet: 0.5}).toDestination();
+  Tone.connect(Howler.masterGain, pitchShift);
+}
+
 
 // seek waveform to playback position
 waveform.on('click', function (value) {
@@ -40,22 +50,13 @@ pauseButton.addEventListener('click', () => {
 
 pitchShiftPlus.addEventListener('click', () => {
   pitch += 0.5;
-  Tone.setContext(Howler.ctx);
-  const pShift = new Tone.PitchShift(pitch);
-  Howler.masterGain.disconnect();
-  Tone.connect(Howler.masterGain, pShift);
-  pShift.toDestination();
+  pitchShift.pitch = pitch;
   updatePitchShift()
-  console.log(pShift.context === Howler.ctx);
 });
 
 pitchShiftMinus.addEventListener('click', () => {
   pitch -= 0.5;
-  Tone.setContext(Howler.ctx);
-  const pShift = new Tone.PitchShift(pitch);
-  Howler.masterGain.disconnect();
-  Tone.connect(Howler.masterGain, pShift);
-  pShift.toDestination();
+  pitchShift.pitch = pitch;
   updatePitchShift();
 });
 
@@ -63,11 +64,7 @@ function updatePitchShift() {
   PitchShiftResult.innerHTML = pitch;
 }
 
-
 function play() {
-  // Sonorous.sonors.forEach(sonor => { 
-  //   sonor.play();
-  // });
   playbackPlayer.play();
   vocalsPlayer.play();
 }
@@ -85,21 +82,3 @@ setInterval(()=>{
   }
 }, 100);
 
-
-async function nextSong() {
-
-  console.log("Next song");
-
-  const instruments = "music/Earth, Wind & Fire - September - (Instrumental).mp3";
-  const vocals = "music/Earth, Wind & Fire - September - (Vocals).mp3";
-  playbackPlayer = null;
-  vocalsPlayer = null;
-  playbackPlayer = new Howl({src:[instruments], onend: nextSong})
-  vocalsPlayer = new Howl({src:[vocals]})
-  waveform.load(instruments);
-
-  //await 2 seconds promise
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  play();
-
-}
