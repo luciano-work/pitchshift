@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "audiomotion-analyzer": "^4.5.0",
     "howler": "^2.2.4",
     "sonorous": "^1.0.8",
     "tone": "^15.0.4",
