@@ -1,7 +1,6 @@
 import wavesurfer from'wavesurfer.js';
 import { Howl } from "howler";
 import * as Tone from "tone";
-import AudioMotionAnalyzer from 'audiomotion-analyzer';
 
 const instruments = "music/instruments.mp3";
 const vocals = "music/vocals.mp3";
@@ -10,14 +9,12 @@ let playbackPlayer = new Howl({src:[instruments], onload: onLoad})
 let vocalsPlayer = new Howl({src:[vocals]})
 let pitch = 0;
 let pitchShift = null;
-let audioMotion = null;
 
 const playButton = document.getElementById('play');
 const pauseButton = document.getElementById('pause');
 const pitchShiftPlus = document.getElementById('pitshiftPlus');
 const pitchShiftMinus = document.getElementById('pitshiftMinus');
 const PitchShiftResult = document.getElementById('pitchshift');
-const audioMotionView = document.getElementById("audioMotion");
 
 const waveform = wavesurfer.create({
   container: '#waveform',
@@ -28,42 +25,11 @@ const waveform = wavesurfer.create({
 
 
 function onLoad() {
-  // Howler.masterGain.disconnect();
-  // Tone.setContext(Howler.ctx);
-  // pitchShift = new Tone.PitchShift({ pitch: 0, wet: 1}).toDestination();
-  // Tone.connect(Howler.masterGain, pitchShift);
-  
-
-  // init audioMotion
-  audioMotion = new AudioMotionAnalyzer(audioMotionView, {
-    audioCtx: Howler.ctx,
-    // width: 800,
-    height: 400,
-    mode: 10,
-    // channelLayout: 'dual-combined',
-    fillAlpha: .1,
-    colorMode: 'bar-level',
-    // gradientLeft: 'myGradient',
-    // gradientRight: 'orangered',
-    linearAmplitude: true,
-    linearBoost: 1.2,
-    lineWidth: 0,
-    maxFreq: 16000,
-    minFreq: 30,
-    peakLine: true,
-    showScaleX: false,
-    showPeaks: true,
-    weightingFilter: 'D',
-    overlay: true,
-    showBgColor: false,
-  });
-  audioMotion.connectInput(Howler.masterGain);
-    audioMotion.registerGradient( 'myGradient', {
-    colorStops: [
-      { color: '#7e22ce', level: .5 }
-    ]
-  });
-
+  Howler.masterGain.disconnect();
+  Tone.setContext(Howler.ctx);
+  pitchShift = new Tone.PitchShift({ pitch: 0, wet: 1}).toDestination();
+  pitchShift.wet.value = 1;
+  Tone.connect(Howler.masterGain, pitchShift);
 }
 
 
