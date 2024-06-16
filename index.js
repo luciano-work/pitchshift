@@ -1,4 +1,4 @@
-import { BasicPitch, addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from '@spotify/basic-pitch';
+import { BasicPitch, addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from './basic-pitch';
 import { Midi } from '@tonejs/midi'
 import { saveAs } from 'file-saver';
 // import * as Tone from 'tone';
@@ -32,13 +32,14 @@ audio.onpause = () => {
 /** Start Generate Midi */
 startBtn.addEventListener("click", async () => {
 
-  /** desenv read midi file */
-  const response = await fetch(midiFile);
-  midiNotes = await response.json();
-  midi = createMidi(midiNotes);
-  encodedMidi = await midiToBase64(midi);
-  audio.play();  
-  return;
+  /** DESENV */
+  // const response = await fetch(midiFile);
+  // midiNotes = await response.json();
+  // midi = createMidi(midiNotes);
+  // encodedMidi = await midiToBase64(midi);
+  // audio.play();  
+  // return;
+  /** DESENV */
 
   /** Calculate durantion process in set timeout */
   const start = Date.now();
@@ -47,6 +48,8 @@ startBtn.addEventListener("click", async () => {
   midiNotes = await getMidNotes(decodedSong);
   midi = createMidi(midiNotes);
   encodedMidi = await midiToBase64(midi);
+
+  /** Save Midi File */
   // const fileToSave = new Blob([JSON.stringify(midiNotes)], {
   //     type: 'application/json'
   // });
@@ -55,7 +58,7 @@ startBtn.addEventListener("click", async () => {
   const end = Date.now();
   const time = (end - start) / 1000;
   duration.innerHTML = `Duration: ${time} seconds`;
-  sing();
+  audio.play();
 
 });
 
@@ -80,8 +83,8 @@ async function getMidNotes(audioBuffer) {
   const onsets = [];
   const contours = [];
   let pct = 0;
-  const model = './model/model.json';
-  const basicPitch = new BasicPitch(model);
+  // const model = './model/model.json';
+  const basicPitch = new BasicPitch();
   await basicPitch.evaluateModel(
     audioBuffer,
     (f, o, c) => {
