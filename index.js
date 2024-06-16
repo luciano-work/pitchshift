@@ -10,6 +10,13 @@ const duration = document.querySelector("#duration");
 const scoreView = document.querySelector("#scoreView");
 const audio = document.querySelector("#audio");
 
+/** Canvas */
+const container = document.getElementById('midiCanvasContainer');
+const canvas = document.getElementById('midiCanvas');
+const ctx = canvas.getContext('2d');
+let maxTime, canvasWidth, scrollSpeed;
+const pixelsPerSecond = 100;
+
 const instruments = "./music/instruments.mp3";
 const vocals = "./music/vocals.mp3";
 const midiFile = "./music/midi.json";
@@ -33,6 +40,7 @@ startBtn.addEventListener("click", async () => {
   /** DESENV */
   const response = await fetch(midiFile);
   midiNotes = await response.json();
+  drawNotes();
   midi = createMidi(midiNotes);
   encodedMidi = await midiToBase64(midi);
   audio.play();  
@@ -166,11 +174,16 @@ if (!navigator?.mediaDevices?.getUserMedia) {
           micSource = audioContext.createMediaStreamSource(stream);
           micSource.connect(analyser);
 
-          captureAudio();
+          // captureAudio();
 
           intervalId = setInterval(() => {
             captureAudio();
           }, 500);
+
+          drawNotes();
+
+     
+
         }
       )
       .catch(function(err) {
@@ -293,4 +306,41 @@ function autoCorrelate(buffer, sampleRate) {
   }
 
   return sampleRate/T0;
+}
+
+function drawNotes() {
+
+  canvasWidth = maxTime * pixelsPerSecond;
+  canvas.width = canvasWidth;
+
+  maxTime = Math.max(...midiNotes.map(note => note.startTimeSeconds + note.durationSeconds));
+  const maxPitch = Math.max(...midiNotes.map(note => note.pitchMidi));
+  const minPitch = Math.min(...midiNotes.map(note => note.pitchMidi));
+  const pitchRange = maxPitch - minPitch;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  midiNotes.forEach(note => {
+    const x = (note.startTimeSeconds / maxTime) * canvas.width;
+    const y = ((note.pitchMidi - minPitch) / pitchRange) * canvas.height;
+    const width = (note.durationSeconds / maxTime) * canvas.width;
+    const height = 10;
+
+    ctx.fillStyle = 'gray';
+    ctx.fillRect(x, canvas.height - y - height, width, height);
+  });
+
+  const playbackX = (audio.currentTime / maxTime) * canvas.width;
+  ctx.fillStyle = 'red';
+  ctx.fillRect(playbackX, 0, 2, canvas.height);
+  scrollMidiCanvas()
+
+  requestAnimationFrame(drawNotes);
+
+}
+
+function scrollMidiCanvas() {
+  /** Update width */
+  const scrollLeft = (audio.currentTime * pixelsPerSecond) - (container.clientWidth / 2);
+  container.scrollLeft = Math.max(scrollLeft, 0);
 }
