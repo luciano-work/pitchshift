@@ -17,7 +17,7 @@ const OVERLAP_LENGTH_FRAMES = N_OVERLAPPING_FRAMES * FFT_HOP;
 const HOP_SIZE = AUDIO_N_SAMPLES - OVERLAP_LENGTH_FRAMES;
 export class BasicPitch {
     constructor(modelFile) {
-        this.modelFile = './model/model.json';
+        this.modelFile = './basic-pitch/model/model.json';
         this.model = null;
         if (OVERLAP_LENGTH_FRAMES % 2 !== 0) {
             throw new Error(`OVERLAP_LENGTH_FRAMES is not divisible by 2! Is ${OVERLAP_LENGTH_FRAMES}`);

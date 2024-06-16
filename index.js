@@ -3,7 +3,8 @@ import { Midi } from '@tonejs/midi'
 import { saveAs } from 'file-saver';
 // import * as Tone from 'tone';
 
-const downloadBtn = document.querySelector("#download-btn");
+const downloadMidiBtn = document.querySelector("#download-midi-btn");
+const downloadJsonBtn = document.querySelector("#download-json-btn");
 const startBtn = document.querySelector("#start-btn");
 const duration = document.querySelector("#duration");
 const scoreView = document.querySelector("#scoreView");
@@ -23,22 +24,19 @@ audio.onplay = () => {
 }
 
 audio.onpause = () => {
-  console.log('pause');
   intervalId && clearInterval(intervalId);
 }
-
-
 
 /** Start Generate Midi */
 startBtn.addEventListener("click", async () => {
 
   /** DESENV */
-  // const response = await fetch(midiFile);
-  // midiNotes = await response.json();
-  // midi = createMidi(midiNotes);
-  // encodedMidi = await midiToBase64(midi);
-  // audio.play();  
-  // return;
+  const response = await fetch(midiFile);
+  midiNotes = await response.json();
+  midi = createMidi(midiNotes);
+  encodedMidi = await midiToBase64(midi);
+  audio.play();  
+  return;
   /** DESENV */
 
   /** Calculate durantion process in set timeout */
@@ -49,12 +47,6 @@ startBtn.addEventListener("click", async () => {
   midi = createMidi(midiNotes);
   encodedMidi = await midiToBase64(midi);
 
-  /** Save Midi File */
-  // const fileToSave = new Blob([JSON.stringify(midiNotes)], {
-  //     type: 'application/json'
-  // });
-  // saveAs(fileToSave, 'midi.json');
-
   const end = Date.now();
   const time = (end - start) / 1000;
   duration.innerHTML = `Duration: ${time} seconds`;
@@ -63,11 +55,22 @@ startBtn.addEventListener("click", async () => {
 });
 
 /** Download MIDI File */
-downloadBtn.addEventListener("click", () => {
+downloadMidiBtn.addEventListener("click", () => {
   if(!midi) return;
-  download(midi);
+  const fileToSave = new Blob([midi.toArray()], {
+      type: 'audio/midi'
+  });
+  saveAs(fileToSave, 'song.midi');
 });
 
+/** Download Json midi */
+downloadJsonBtn.addEventListener("click", () => {
+  if(!midiNotes) return;
+  const fileToSave = new Blob([JSON.stringify(midiNotes)], {
+      type: 'application/json'
+  });
+  saveAs(fileToSave, 'midi.json');
+});
 
 async function loadSong(audio) {
   const audioCtx = new AudioContext({sampleRate: 22050})
@@ -115,16 +118,6 @@ function createMidi(notes) {
     });
   });
   return midi;
-}
-
-function download(midi) {
-  const midiBlob = new Blob([midi.toArray()], { type: 'audio/midi' });
-  const url = URL.createObjectURL(midiBlob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'song.midi';
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 async function midiToBase64(midi) {
@@ -199,44 +192,16 @@ function captureAudio() {
   micNote = noteStrings[micFrequency % 12];
   console.log(micFrequency, micNote);
   checkNoteAtTime(audio.currentTime, micFrequency);
-
-  // analyser.getByteFrequencyData(dataArray);
-  // const frequency = getDominantFrequency(dataArray);
-  // console.log(frequency);
-  // if (frequency === 0) return;
-  // micNote = getNoteFromFrequency(frequency);
-  // console.log(micNote);
-  // checkNoteAtTime(audio.currentTime, micNote);
-}
-
-function getDominantFrequency(dataArray) {
-  let maxIndex = 0;
-  let maxValue = -Infinity;
-  for (let i = 0; i < dataArray.length; i++) {
-    if (dataArray[i] > maxValue) {
-      maxValue = dataArray[i];
-      maxIndex = i;
-    }
-  }
-  const nyquist = audioContext.sampleRate / 2;
-  const frequency = (maxIndex * nyquist) / bufferLength;
-  return frequency;
 }
 
 function getNoteFromFrequency(frequency) {
-  // const A4 = 440;
-  // const semitoneRatio = Math.pow(2, 1 / 12);
-  // const noteNumber = Math.round(12 * Math.log2(frequency / A4)) + 49;
-  // return noteNumber;
-  // const midiNumber = 69 + 12 * Math.log2(frequency / 440);
-  // return Math.round(midiNumber);
   const noteNum = 12 * (Math.log( frequency / 440 )/Math.log(2) );
   return Math.round( noteNum ) + 69;
 }
 
 function checkNoteAtTime(currentTime, note) {
   for (let midiNote of midiNotes) {
-    if (Math.abs(midiNote.startTimeSeconds - currentTime) < 0.1) { // Tolerância de 100ms
+    if (Math.abs((midiNote.startTimeSeconds + midiNote.durationSeconds) - currentTime) < 0.1) { // Tolerância de 100ms
       if (midiNote.pitchMidi == note) {
         score += 1;
         console.log(`Acertou: ${score}`);
@@ -329,4 +294,3 @@ function autoCorrelate(buffer, sampleRate) {
 
   return sampleRate/T0;
 }
-

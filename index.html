@@ -8,12 +8,15 @@
   </head>
   <body class="container mx-auto my-[50px]">
     <div class="flex gap-2">
-      <button id="start-btn" class="bg-indigo-500 inline-block px-2 py-1 rounded-lg text-xs text-white">START</button>
-      <button id="download-btn" class="bg-green-500 inline-block px-2 py-1 rounded-lg text-xs text-white">DOWNLOAD MIDI</button>
+      <button id="start-btn" class="bg-indigo-500 inline-block px-2 py-1 rounded-lg text-xs text-white">PLAY</button>
+      <button id="download-midi-btn" class="bg-green-500 inline-block px-2 py-1 rounded-lg text-xs text-white">DOWNLOAD MIDI</button>
+      <button id="download-json-btn" class="bg-rose-500 inline-block px-2 py-1 rounded-lg text-xs text-white">DOWNLOAD JSON</button>
       <div id="scoreView" class="bg-orange-500 rounded-full inline-block px-2 text-white">Score: 0</div>
       <div id="duration" class="text-red-500">0:00</div>
     </div>
-    <div class="mt-4"><audio id="audio" controls></audio></div>
+    <div class="mt-4">
+      <audio id="audio" controls></audio>
+    </div>
     <script type="module" src="index.js"></script>
   </body>
 </html>
