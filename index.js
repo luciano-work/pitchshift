@@ -14,13 +14,14 @@ const audio = document.querySelector("#audio");
 const container = document.getElementById('midiCanvasContainer');
 const canvas = document.getElementById('midiCanvas');
 const ctx = canvas.getContext('2d');
-let maxTime, canvasWidth, scrollSpeed;
+let maxTime, canvasWidth;
 const pixelsPerSecond = 100;
 
 const instruments = "./music/instruments.mp3";
 const vocals = "./music/vocals.mp3";
 const midiFile = "./music/midi.json";
 let midiNotes = null;
+let songNotes = null;
 let midi = null;
 let encodedMidi = null;
 let score = 0;
@@ -38,13 +39,13 @@ audio.onpause = () => {
 startBtn.addEventListener("click", async () => {
 
   /** DESENV */
-  const response = await fetch(midiFile);
-  midiNotes = await response.json();
-  drawNotes();
-  midi = createMidi(midiNotes);
-  encodedMidi = await midiToBase64(midi);
-  audio.play();  
-  return;
+  // const response = await fetch(midiFile);
+  // midiNotes = await response.json();
+  // drawNotes();
+  // midi = createMidi(midiNotes);
+  // encodedMidi = await midiToBase64(midi);
+  // audio.play();  
+  // return;
   /** DESENV */
 
   /** Calculate durantion process in set timeout */
@@ -151,6 +152,7 @@ const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#",
 var bufferLength;
 var dataArray;
 var micNote;
+var micFrequency;
 let intervalId = null;
 // let startTime
 
@@ -174,15 +176,12 @@ if (!navigator?.mediaDevices?.getUserMedia) {
           micSource = audioContext.createMediaStreamSource(stream);
           micSource.connect(analyser);
 
-          // captureAudio();
-
-          intervalId = setInterval(() => {
-            captureAudio();
-          }, 500);
+          // intervalId = setInterval(() => {
+          //   captureAudio();
+          // }, 500);
+          captureAudio();
 
           drawNotes();
-
-     
 
         }
       )
@@ -201,10 +200,13 @@ function captureAudio() {
   analyser.getFloatTimeDomainData(dataArray);
   const autoCorrelateValue = autoCorrelate(dataArray, audioContext.sampleRate)
   
-  const micFrequency = getNoteFromFrequency(autoCorrelateValue);
-  micNote = noteStrings[micFrequency % 12];
-  console.log(micFrequency, micNote);
+  const note = getNoteFromFrequency(autoCorrelateValue);
+  micFrequency = note;
+  micNote = noteStrings[note % 12];
+  // console.log(note, micFrequency, micNote);
   checkNoteAtTime(audio.currentTime, micFrequency);
+
+  requestAnimationFrame(captureAudio);
 }
 
 function getNoteFromFrequency(frequency) {
@@ -215,12 +217,16 @@ function getNoteFromFrequency(frequency) {
 function checkNoteAtTime(currentTime, note) {
   for (let midiNote of midiNotes) {
     if (Math.abs((midiNote.startTimeSeconds + midiNote.durationSeconds) - currentTime) < 0.1) { // Tolerância de 100ms
-      if (midiNote.pitchMidi == note) {
-        score += 1;
-        console.log(`Acertou: ${score}`);
-        scoreView.innerHTML = `Score: ${score}`;
+      if(!midiNote.score) {
+        if (midiNote.pitchMidi == note) {
+          score += 1;
+          console.log(`Acertou: ${score}`);
+          scoreView.innerHTML = `Score: ${score}`;
+          midiNote.color = 'green';
+          midiNote.score = 1;
+        }
+        break;
       }
-      break;
     }
   }
 }
@@ -326,13 +332,23 @@ function drawNotes() {
     const width = (note.durationSeconds / maxTime) * canvas.width;
     const height = 10;
 
-    ctx.fillStyle = 'gray';
+    ctx.fillStyle = note.color || 'black';
     ctx.fillRect(x, canvas.height - y - height, width, height);
   });
 
+  // Draw the playback position indicator
   const playbackX = (audio.currentTime / maxTime) * canvas.width;
   ctx.fillStyle = 'red';
   ctx.fillRect(playbackX, 0, 2, canvas.height);
+
+  // Draw the moving ball for the current frequency
+  const frequencyY = ((micFrequency - minPitch) / pitchRange) * canvas.height;
+  ctx.beginPath();
+  ctx.arc(playbackX, canvas.height - frequencyY, 10, 0, 2 * Math.PI);
+  ctx.fillStyle = 'green';
+  ctx.fill();
+  ctx.stroke();
+
   scrollMidiCanvas()
 
   requestAnimationFrame(drawNotes);
