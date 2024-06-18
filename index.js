@@ -1,4 +1,4 @@
-import { BasicPitch, addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from './basic-pitch';
+// import { BasicPitch, addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from './basic-pitch';
 import { Midi } from '@tonejs/midi'
 import { saveAs } from 'file-saver';
 // import * as Tone from 'tone';
@@ -21,10 +21,28 @@ const instruments = "./music/instruments.mp3";
 const vocals = "./music/vocals.mp3";
 const midiFile = "./music/midi.json";
 let midiNotes = null;
-let songNotes = null;
 let midi = null;
 let encodedMidi = null;
 let score = 0;
+let start = 0;
+
+const worker = new Worker(new URL("./worker.js", import.meta.url), {
+  type: "module",
+});
+
+worker.addEventListener("message", async (event) => {
+  const message = event.data;
+  if(message.status === "complete") {
+    midiNotes = message.data;
+    midi = createMidi(midiNotes);
+    encodedMidi = await midiToBase64(midi);
+
+    const end = Date.now();
+    const time = (end - start) / 1000;
+    duration.innerHTML = `Duration: ${time} seconds`;
+    audio.play();
+  }
+});
 
 audio.src = instruments;
 audio.onplay = () => {
@@ -49,17 +67,9 @@ startBtn.addEventListener("click", async () => {
   /** DESENV */
 
   /** Calculate durantion process in set timeout */
-  const start = Date.now();
-
   const decodedSong = await loadSong(vocals);
-  midiNotes = await getMidNotes(decodedSong);
-  midi = createMidi(midiNotes);
-  encodedMidi = await midiToBase64(midi);
-
-  const end = Date.now();
-  const time = (end - start) / 1000;
-  duration.innerHTML = `Duration: ${time} seconds`;
-  audio.play();
+  start = Date.now();
+  worker.postMessage({decodedSong});
 
 });
 
@@ -87,31 +97,6 @@ async function loadSong(audio) {
   const arrayBuffer = await response.arrayBuffer();
   const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
   return audioBuffer.getChannelData(0);
-}
-
-async function getMidNotes(audioBuffer) {
-  console.log('decode To Midi...');
-  const frames = [];
-  const onsets = [];
-  const contours = [];
-  let pct = 0;
-  // const model = './model/model.json';
-  const basicPitch = new BasicPitch();
-  await basicPitch.evaluateModel(
-    audioBuffer,
-    (f, o, c) => {
-      frames.push(...f);
-      onsets.push(...o);
-      contours.push(...c);
-    },
-    (p) => {
-      pct = p;
-    },
-  );
-
-  const notes = noteFramesToTime(addPitchBendsToNoteEvents(contours, outputToNotesPoly(frames, onsets, 0.25, 0.25, 11)));
-  console.log('decode To Midi Done!');
-  return notes;
 }
 
 function createMidi(notes) {
@@ -176,9 +161,6 @@ if (!navigator?.mediaDevices?.getUserMedia) {
           micSource = audioContext.createMediaStreamSource(stream);
           micSource.connect(analyser);
 
-          // intervalId = setInterval(() => {
-          //   captureAudio();
-          // }, 500);
           captureAudio();
 
           drawNotes();
