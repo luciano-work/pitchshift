@@ -1,6 +1,7 @@
 // import { BasicPitch, addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from './basic-pitch';
 import { Midi } from '@tonejs/midi'
 import { saveAs } from 'file-saver';
+import { runWorker } from './worker-helper';
 // import * as Tone from 'tone';
 
 const downloadMidiBtn = document.querySelector("#download-midi-btn");
@@ -30,19 +31,19 @@ const worker = new Worker(new URL("./worker.js", import.meta.url), {
   type: "module",
 });
 
-worker.addEventListener("message", async (event) => {
-  const message = event.data;
-  if(message.status === "complete") {
-    midiNotes = message.data;
-    midi = createMidi(midiNotes);
-    encodedMidi = await midiToBase64(midi);
+// worker.addEventListener("message", async (event) => {
+//   const message = event.data;
+//   if(message.status === "complete") {
+//     midiNotes = message.data;
+//     midi = createMidi(midiNotes);
+//     encodedMidi = await midiToBase64(midi);
 
-    const end = Date.now();
-    const time = (end - start) / 1000;
-    duration.innerHTML = `Duration: ${time} seconds`;
-    audio.play();
-  }
-});
+//     const end = Date.now();
+//     const time = (end - start) / 1000;
+//     duration.innerHTML = `Duration: ${time} seconds`;
+//     audio.play();
+//   }
+// });
 
 audio.src = instruments;
 audio.onplay = () => {
@@ -69,7 +70,18 @@ startBtn.addEventListener("click", async () => {
   /** Calculate durantion process in set timeout */
   const decodedSong = await loadSong(vocals);
   start = Date.now();
-  worker.postMessage({decodedSong});
+  const message = await runWorker(worker, { decodedSong });
+
+  if(message.status === "complete") {
+    midiNotes = message.data;
+    midi = createMidi(midiNotes);
+    encodedMidi = await midiToBase64(midi);
+
+    const end = Date.now();
+    const time = (end - start) / 1000;
+    duration.innerHTML = `Duration: ${time} seconds`;
+    audio.play();
+  }
 
 });
 
