@@ -32,10 +32,16 @@ async function getMidNotes(audioBuffer) {
     },
     (p) => {
       pct = p;
+      console.clear();
+      console.log(`Decoding: ${(pct * 100).toFixed()}%`);
     },
   );
-
-  const notes = noteFramesToTime(addPitchBendsToNoteEvents(contours, outputToNotesPoly(frames, onsets, 0.25, 0.25, 11)));
+  console.log('Init outputToNotesPoly');
+  const notesPoly = outputToNotesPoly(frames, onsets, 0.5, 0.3, 11, true, null, null, false, 11)
+  console.log('noteEvents');
+  const noteEvents = addPitchBendsToNoteEvents(contours, notesPoly)
+  console.log('noteFramesToTime');
+  const notes = noteFramesToTime(noteEvents);
   console.log('decode To Midi Done!');
   return notes;
 }

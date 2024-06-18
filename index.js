@@ -31,20 +31,6 @@ const worker = new Worker(new URL("./worker.js", import.meta.url), {
   type: "module",
 });
 
-// worker.addEventListener("message", async (event) => {
-//   const message = event.data;
-//   if(message.status === "complete") {
-//     midiNotes = message.data;
-//     midi = createMidi(midiNotes);
-//     encodedMidi = await midiToBase64(midi);
-
-//     const end = Date.now();
-//     const time = (end - start) / 1000;
-//     duration.innerHTML = `Duration: ${time} seconds`;
-//     audio.play();
-//   }
-// });
-
 audio.src = instruments;
 audio.onplay = () => {
   sing();
@@ -91,7 +77,7 @@ downloadMidiBtn.addEventListener("click", () => {
   const fileToSave = new Blob([midi.toArray()], {
       type: 'audio/midi'
   });
-  saveAs(fileToSave, 'song.midi');
+  saveAs(fileToSave, 'song.mid');
 });
 
 /** Download Json midi */
